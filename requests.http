@@ -30,3 +30,13 @@ Content-Type: application/json
 ### 4. Todoを削除
 # /1 は登録したテスト用タスクのIDに変更してください。
 DELETE http://localhost:8081/api/todos/18
+
+### 5. 入力エラーを確認する
+POST http://localhost:8081/api/todos
+Content-Type: application/json
+
+{
+  "title": "",
+  "category": "就職活動",
+  "priority": 2
+}
