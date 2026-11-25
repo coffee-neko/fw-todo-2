@@ -73,3 +73,51 @@ Content-Type: application/json
   "priority": 3,
   "dueDate": "2026-11-15"
 }
+
+### 9. 窓口と会話を始める
+POST http://localhost:8081/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2025-06-18",
+    "capabilities": {},
+    "clientInfo": {
+      "name": "requests.http",
+      "version": "1.0"
+    }
+  }
+}
+
+### 10. 道具の一覧をもらう
+POST http://localhost:8081/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+Mcp-Session-Id: eb2cb1a1-3d91-4cc8-9512-9a7fcaabef51
+
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/list",
+  "params": {}
+}
+
+### 11. 道具を1つ呼んでみる
+POST http://localhost:8081/mcp
+Content-Type: application/json
+Accept: application/json, text/event-stream
+Mcp-Session-Id: eb2cb1a1-3d91-4cc8-9512-9a7fcaabef51
+
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "tools/call",
+  "params": {
+    "name": "list_todos",
+    "arguments": {}
+  }
+}
