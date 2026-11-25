@@ -1,0 +1,32 @@
+### 1. Todoを登録
+POST http://localhost:8081/api/todos
+Content-Type: application/json
+
+{
+  "title": "ポートフォリオの構成を考える",
+  "category": "就職活動",
+  "priority": 1,
+  "dueDate": "2026-12-10"
+}
+
+### 2. Todoを1件取得
+GET http://localhost:8081/api/todos/18
+
+
+### 3. Todoを更新
+# /1 は登録したテスト用タスクのIDに変更してください。
+PUT http://localhost:8081/api/todos/18
+Content-Type: application/json
+
+{
+  "title": "ポートフォリオの構成を決める",
+  "detail": "作品を3件選ぶ",
+  "category": "就職活動",
+  "priority": 1,
+  "dueDate": "2026-12-12",
+  "completed": false
+}
+
+### 4. Todoを削除
+# /1 は登録したテスト用タスクのIDに変更してください。
+DELETE http://localhost:8081/api/todos/18

@@ -28,9 +28,13 @@
     WHERE id = #{id}
   </select>
 
-  <insert id="insert">
-    INSERT INTO todos (title, detail, category, priority, due_date)
-    VALUES (#{title}, #{detail}, #{category}, #{priority}, #{dueDate})
+  <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO todos (title, detail, category, priority, due_date, completed)
+    VALUES (#{title}, #{detail}, #{category}, #{priority}, #{dueDate},
+            <choose>
+              <when test="completed != null">#{completed}</when>
+              <otherwise>false</otherwise>
+            </choose>)
   </insert>
 
   <update id="update">
