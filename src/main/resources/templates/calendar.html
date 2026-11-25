@@ -39,5 +39,30 @@
       </tbody>
     </table>
   </div>
+  <script>
+    async function loadTodos() {
+      const calendar = document.querySelector('.calendar-grid');
+      const from = calendar.dataset.from;
+      const to = calendar.dataset.to;
+      const params = new URLSearchParams({ from, to });
+      const res = await fetch(`/api/todos?${params.toString()}`);
+      const todos = await res.json();
+      const cellsByDate = new Map(
+        [...calendar.querySelectorAll('[data-date]')].map((cell) => [cell.dataset.date, cell])
+      );
+
+      for (const todo of todos) {
+        const cell = cellsByDate.get(todo.dueDate);
+        if (cell == null) {
+          continue;
+        }
+        const title = document.createElement('div');
+        title.textContent = todo.title;
+        cell.append(title);
+      }
+    }
+
+    loadTodos();
+  </script>
 </body>
 </html>
