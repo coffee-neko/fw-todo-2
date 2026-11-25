@@ -119,11 +119,22 @@ text-decoration: underline;
 }
 
 .calendar-navigation {
-display: flex;
+display: grid;
+grid-template-columns: 1fr auto 1fr;
 align-items: center;
-justify-content: space-between;
 gap: 16px;
 margin-bottom: 16px;
+}
+
+.calendar-navigation-left,
+.calendar-navigation-right {
+display: flex;
+align-items: center;
+gap: 12px;
+}
+
+.calendar-navigation-right {
+justify-content: flex-end;
 }
 
 .calendar-heading {

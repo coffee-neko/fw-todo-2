@@ -9,11 +9,18 @@
 <body>
   <div class="container">
     <h1 class="page-title">カレンダー</h1>
+    <p id="holiday-unavailable" hidden>祝日を取れませんでした</p>
 
     <div class="calendar-navigation">
-      <a class="link" th:href="@{/calendar(year=${previousMonth.year}, month=${previousMonth.monthValue})}">前の月</a>
+      <div class="calendar-navigation-left">
+        <a class="link" th:href="@{/calendar(year=${previousMonth.year}, month=${previousMonth.monthValue})}">前の月</a>
+        <a class="link" th:href="@{/calendar(year=${nextMonth.year}, month=${nextMonth.monthValue})}">次の月</a>
+      </div>
       <h2 class="calendar-heading"><span th:text="${year}">2026</span>年<span th:text="${month}">4</span>月</h2>
-      <a class="link" th:href="@{/calendar(year=${nextMonth.year}, month=${nextMonth.monthValue})}">次の月</a>
+      <div class="calendar-navigation-right">
+        <a class="link" th:href="@{/todos}">表で見る</a>
+        <a class="link" th:href="@{/todos/new}">新規登録</a>
+      </div>
     </div>
 
     <table class="calendar-grid"
@@ -31,38 +38,118 @@
       </thead>
       <tbody>
         <tr th:each="week : ${weeks}">
-          <td th:each="day : ${week}" th:if="${day != null}"
-              th:attr="data-date=${#temporals.format(day, 'yyyy-MM-dd')}"
-              th:text="${day.dayOfMonth}">1</td>
-          <td th:each="day : ${week}" th:unless="${day != null}"></td>
+          <td th:each="day : ${week}"
+              th:attr="data-date=${day != null ? #temporals.format(day, 'yyyy-MM-dd') : null}">
+            <span th:if="${day != null}" th:text="${day.dayOfMonth}">1</span>
+          </td>
         </tr>
       </tbody>
     </table>
   </div>
   <script>
-    async function loadTodos() {
+    async function loadTodos(calendar, params, cellsByDate) {
+      const res = await fetch(`/api/todos?${params.toString()}`);
+      const todos = await res.json();
+      const todosByDate = new Map();
+
+      for (const todo of todos) {
+        if (!cellsByDate.has(todo.dueDate)) {
+          continue;
+        }
+        if (!todosByDate.has(todo.dueDate)) {
+          todosByDate.set(todo.dueDate, []);
+        }
+        todosByDate.get(todo.dueDate).push(todo);
+      }
+
+      const today = getTodayInJapan();
+      for (const [dueDate, todosForDate] of todosByDate) {
+        const cell = cellsByDate.get(dueDate);
+        for (const todo of todosForDate.slice(0, 3)) {
+          const title = document.createElement('a');
+          title.className = 'link';
+          title.href = `/todos/${todo.id}/edit`;
+          title.textContent = todo.title;
+          title.style.display = 'block';
+          if (todo.dueDate < today && todo.completed === false) {
+            title.style.color = '#d00000';
+          }
+          cell.append(title);
+        }
+        if (todosForDate.length > 3) {
+          const remaining = document.createElement('div');
+          remaining.textContent = `ほか ${todosForDate.length - 3}件`;
+          cell.append(remaining);
+        }
+      }
+    }
+
+    function getTodayInJapan() {
+      const dateParts = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Tokyo',
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      }).formatToParts(new Date());
+      const values = Object.fromEntries(
+        dateParts
+          .filter((part) => part.type !== 'literal')
+          .map((part) => [part.type, part.value])
+      );
+      return `${values.year}-${values.month}-${values.day}`;
+    }
+
+    function colorWeekends(calendar) {
+      for (const cell of calendar.querySelectorAll('[data-date]')) {
+        const date = new Date(`${cell.dataset.date}T00:00:00`);
+        if (date.getDay() === 0) {
+          cell.style.backgroundColor = '#fff0f0';
+        } else if (date.getDay() === 6) {
+          cell.style.backgroundColor = '#e8f4ff';
+        }
+      }
+    }
+
+    async function loadHolidays(calendar, params, cellsByDate) {
+      const unavailableMessage = document.querySelector('#holiday-unavailable');
+      try {
+        const res = await fetch(`/api/holidays?${params.toString()}`);
+        if (!res.ok) {
+          unavailableMessage.hidden = false;
+          return;
+        }
+        const holidays = await res.json();
+        if (res.headers.get('X-Holidays-Unavailable') === 'true') {
+          unavailableMessage.hidden = false;
+        }
+        for (const [date, name] of Object.entries(holidays)) {
+          const cell = cellsByDate.get(date);
+          if (cell == null) {
+            continue;
+          }
+          cell.style.backgroundColor = '#fff8d8';
+          cell.title = name;
+        }
+      } catch (error) {
+        unavailableMessage.hidden = false;
+      }
+    }
+
+    async function loadCalendar() {
       const calendar = document.querySelector('.calendar-grid');
       const from = calendar.dataset.from;
       const to = calendar.dataset.to;
       const params = new URLSearchParams({ from, to });
-      const res = await fetch(`/api/todos?${params.toString()}`);
-      const todos = await res.json();
       const cellsByDate = new Map(
         [...calendar.querySelectorAll('[data-date]')].map((cell) => [cell.dataset.date, cell])
       );
 
-      for (const todo of todos) {
-        const cell = cellsByDate.get(todo.dueDate);
-        if (cell == null) {
-          continue;
-        }
-        const title = document.createElement('div');
-        title.textContent = todo.title;
-        cell.append(title);
-      }
+      colorWeekends(calendar);
+      await loadTodos(calendar, params, cellsByDate);
+      await loadHolidays(calendar, params, cellsByDate);
     }
 
-    loadTodos();
+    loadCalendar();
   </script>
 </body>
 </html>

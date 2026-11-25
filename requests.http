@@ -40,3 +40,36 @@ Content-Type: application/json
   "category": "就職活動",
   "priority": 2
 }
+
+### 6. 履歴書写真を登録
+POST http://localhost:8081/api/todos
+Content-Type: application/json
+
+{
+  "title": "履歴書の写真を撮る",
+  "category": "就職活動",
+  "priority": 1,
+  "dueDate": "2026-11-15"
+}
+
+### 7. ポートフォリオを登録
+POST http://localhost:8081/api/todos
+Content-Type: application/json
+
+{
+  "title": "ポートフォリオを整理する",
+  "category": "デザイン",
+  "priority": 2,
+  "dueDate": "2026-11-15"
+}
+
+### 8. Java復習を登録
+POST http://localhost:8081/api/todos
+Content-Type: application/json
+
+{
+  "title": "Javaの復習をする",
+  "category": "プログラミング",
+  "priority": 3,
+  "dueDate": "2026-11-15"
+}
